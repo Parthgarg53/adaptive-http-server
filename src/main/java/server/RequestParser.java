@@ -21,6 +21,11 @@ public class RequestParser {
                 headers.put(line.substring(0, colon).trim().toLowerCase(), line.substring(colon + 1).trim());
             }
         }
-        return new HttpRequest(parts[0], parts[1], headers);
+
+        String target = parts[1];
+        int question = target.indexOf('?');
+        String path = question < 0 ? target : target.substring(0, question);
+        String query = question < 0 ? "" : target.substring(question + 1);
+        return new HttpRequest(parts[0], path, query, headers);
     }
 }

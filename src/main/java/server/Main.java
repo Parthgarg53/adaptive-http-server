@@ -10,24 +10,28 @@ import java.util.concurrent.Executors;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        Router router = new Router();
+        router.add("GET", "/health", request -> HttpResponse.text(200, "OK", "ok\n"));
+        router.add("GET", "/hello", request -> HttpResponse.text(200, "OK", "hello\n"));
+
         ExecutorService pool = Executors.newFixedThreadPool(10);
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
             System.out.println("Listening on 8080");
             while (true) {
                 Socket client = serverSocket.accept();
-                pool.execute(() -> handle(client));
+                pool.execute(() -> handle(client, router));
             }
         }
     }
 
-    private static void handle(Socket client) {
+    private static void handle(Socket client, Router router) {
         try (client) {
             client.setSoTimeout(5000);
             BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
             HttpRequest request = RequestParser.parse(reader);
             HttpResponse response = request == null
                     ? HttpResponse.text(400, "Bad Request", "bad request\n")
-                    : HttpResponse.text(200, "OK", "hello from " + request.path() + "\n");
+                    : router.route(request);
             response.writeTo(client.getOutputStream());
         } catch (IOException ignored) {
         }
