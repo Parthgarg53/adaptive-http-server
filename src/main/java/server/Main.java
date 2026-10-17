@@ -1,5 +1,5 @@
 package server;
-
+import java.nio.file.Path;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,6 +13,7 @@ public class Main {
         Router router = new Router();
         router.add("GET", "/health", request -> HttpResponse.text(200, "OK", "ok\n"));
         router.add("GET", "/hello", request -> HttpResponse.text(200, "OK", "hello\n"));
+        router.setFallback(new StaticFileHandler(Path.of("public")));
 
         ExecutorService pool = Executors.newFixedThreadPool(10);
         try (ServerSocket serverSocket = new ServerSocket(8080)) {
